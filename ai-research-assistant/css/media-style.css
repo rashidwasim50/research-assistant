@@ -1,0 +1,10 @@
+.ai-assist-sett {
+    display: flex;
+    align-items: baseline;
+}
+.assistLink a {
+    text-decoration: none;
+    color: #736b6b;
+    font-size: large;
+    font-weight: 700;
+}
