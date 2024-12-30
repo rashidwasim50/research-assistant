@@ -1,0 +1,52 @@
+/**
+ * CTA Button Component
+ * Floating call-to-action button styles
+ */
+.assistant-cta-container {
+    position: fixed;
+    bottom: 0;
+    right: 20px;
+    z-index: 9999;
+    margin: 0;
+}
+
+.assistant-cta-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;         /* horizontally center items */
+    justify-content: center;     /* vertically center items */
+    text-decoration: none;
+    color: #ffffff;
+    padding: 16px 24px;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+    text-align: center;          /* ensures text wraps center if multiline */
+}
+.assistant-cta-button:hover {
+    transform: translateY(-2px);
+}
+.assistant-cta-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-align: center;          /* center text within the title */
+}
+.assistant-cta-title .lightning-bolt {
+    font-size: 1.2em;
+    color: #61dafb; /* Accent color for the icon; tweak to your brand */
+}
+.assistant-cta-subtitle {
+    font-size: 14px;
+    font-weight: 400;
+    opacity: 0.9;
+    margin: 0;
+    text-align: center;          /* center text within the subtitle */
+}
+
+
+
+

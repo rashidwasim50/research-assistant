@@ -1,0 +1,51 @@
+.scrollable-table-body {
+    display: block;
+    max-height: 200px;
+    overflow-y: scroll;
+}
+
+.scrollable-table-body tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.wp-list-table thead, 
+.wp-list-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.post-type-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -5px;
+}
+
+.post-type-item {
+    flex: 1 0 25%;
+    box-sizing: border-box;
+    padding: 5px;
+}
+
+.post-type-selector {
+    margin: 20px 0;
+}
+
+.post-type-selector .button {
+    margin-top: 10px;
+}
+
+th[data-sortable="true"] {
+    cursor: pointer;
+}
+
+th[data-sortable="true"]:hover {
+    background-color: #f0f0f0;
+}
+
+.sort-indicator {
+    margin-left: 5px;
+    color: #666;
+}

@@ -1,0 +1,55 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE/Editor Files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.phpstorm.meta.php
+
+# Dependency Management
+/vendor/
+/node_modules/
+composer.lock
+package-lock.json
+yarn.lock
+
+# Build/Compilation Files
+/dist/
+/build/
+*.map
+.sass-cache/
+
+# WordPress-specific
+*.log
+wp-config.php
+/uploads/
+/upgrade/
+/backup*/
+/cache/
+
+/temp/*
+!/temp/.gitkeep
+*.zip
+*.tar
+*.gz
+
+# Development/Testing
+.env
+phpunit.xml
+/tests/coverage/
+.phpunit.result.cache
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Miscellaneous
+*.bak
+*.swp
+*.swo
+*~
+.htaccess
+.env.*
+!.env.example

@@ -15,7 +15,7 @@ function ai_research_add_rewrite_rules() {
 }
 add_action('init', 'ai_research_add_rewrite_rules');
 
-require_once plugin_dir_path(__FILE__) . 'includes/pinecone-service.php';
+require_once plugin_dir_path(__FILE__) . 'includes/services/pinecone-service.php';
 require_once plugin_dir_path(__FILE__) . 'includes/file-ingestion.php';
 
 function ai_research_admin_assets($hook) {
@@ -31,13 +31,18 @@ add_action( 'admin_enqueue_scripts', 'ai_research_admin_assets' );
 
 // Enqueue scripts and styles
 function ai_research_assets() {
-    wp_enqueue_style( 'ai-research-css', plugin_dir_url( __FILE__ ) . 'css/ai-research.css' );
-    wp_enqueue_script( 'ai-research-js', plugin_dir_url( __FILE__ ) . 'js/ai-research.js', array('jquery'), null, true );
-    wp_localize_script( 'ai-research-js', 'chatInterfaceAjax', array(
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce' => wp_create_nonce( 'ai_research_nonce' ),
-        'imagesUrl'  => plugins_url('images', __FILE__)
-    ) );
+    // Always load core styles for assistant and CTA
+    wp_enqueue_style('ai-research-css', plugin_dir_url(__FILE__) . 'css/ai-research.css', array(), filemtime(plugin_dir_path(__FILE__) . 'css/ai-research.css'));
+    
+    // Only load JS on assistant page
+    if (get_query_var('assistant_page') == 1) {
+        wp_enqueue_script('ai-research-js', plugin_dir_url(__FILE__) . 'js/ai-research.js', array('jquery'), null, true);
+        wp_localize_script('ai-research-js', 'chatInterfaceAjax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('ai_research_nonce'),
+            'imagesUrl' => plugins_url('images', __FILE__)
+        ));
+    }
 }
 add_action( 'wp_enqueue_scripts', 'ai_research_assets' );
 
@@ -75,6 +80,7 @@ function ai_research_settings() {
     add_option( 'ai_research_assistant_heading');
     add_option( 'ai_research_assistant_footer_text');
     add_option( 'ai_research_assistant_placeholder_text' );
+    add_option('ai_research_selected_post_types');
 
     register_setting( 'ai-research-assistant-options-group', 'ai_research_assistant_logo' );
     register_setting( 'ai-research-assistant-options-group', 'ai_research_assistant_text' );
@@ -88,6 +94,19 @@ function ai_research_register_settings() {
     register_setting( 'ai-research-assistant-options-group', 'ai_research_assistant_name' );
     register_setting( 'ai-research-assistant-options-group', 'ai_research_api_key', 'ai_research_api_key_sanitize' );
     register_setting( 'ai-research-assistant-options-group', 'ai_research_assistant_contact_us_link', 'esc_url_raw' );
+
+    register_setting('ai-research-assistant-options-group', 'ai_research_cta_enabled');
+    register_setting('ai-research-assistant-options-group', 'ai_research_cta_subtitle', 'sanitize_text_field');
+    register_setting('ai-research-assistant-options-group', 'ai_research_cta_gradient_start', 'sanitize_hex_color');
+    register_setting('ai-research-assistant-options-group', 'ai_research_cta_gradient_end', 'sanitize_hex_color');
+
+    // File Ingestion Settings Group
+    register_setting('ai-research-assistant-file-options-group', 'ai_research_selected_post_types', [
+        'type'    => 'array',
+        'sanitize_callback' => 'ai_research_sanitize_post_types',
+        'default' => [],
+    ]);
+
 }
 add_action( 'admin_init', 'ai_research_register_settings' );
 
@@ -98,6 +117,13 @@ function ai_research_api_key_sanitize( $input ) {
         // Return existing API key if input is empty
         return get_option( 'ai_research_api_key' );
     }
+}
+
+function ai_research_sanitize_post_types($input) {
+    if (is_array($input)) {
+        return array_map('sanitize_text_field', $input);
+    }
+    return [];
 }
 
 function ai_research_menu() {
@@ -213,6 +239,40 @@ function ai_research_chat_settings_page() {
                             <input type="text" name="ai_research_assistant_placeholder_text" 
                                 value="<?php echo esc_attr( get_option( 'ai_research_assistant_placeholder_text', '' ) ); ?>" 
                                 placeholder="How can we help you?" />
+                        </td>
+                    </tr>
+                    <!-- CTA Button Settings -->
+                    <tr valign="top">
+                        <th scope="row">Enable CTA Button</th>
+                        <td>
+                            <input type="checkbox" name="ai_research_cta_enabled" value="1"
+                                <?php checked(get_option('ai_research_cta_enabled'), 1); ?> />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">CTA Subtitle Text</th>
+                        <td>
+                            <input type="text" name="ai_research_cta_subtitle" 
+                                value="<?php echo esc_attr(get_option('ai_research_cta_subtitle', 'Launch Our AI Assistant')); ?>" 
+                                placeholder="Launch Our AI Assistant" />
+                            <p class="description">Text displayed below the main CTA title.</p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">CTA Gradient Colors</th>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    Start Color
+                                    <input type="color" name="ai_research_cta_gradient_start" 
+                                        value="<?php echo esc_attr(get_option('ai_research_cta_gradient_start', '#123a52')); ?>" />
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    End Color
+                                    <input type="color" name="ai_research_cta_gradient_end" 
+                                        value="<?php echo esc_attr(get_option('ai_research_cta_gradient_end', '#155A74')); ?>" />
+                                </label>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -368,3 +428,44 @@ function allow_svg_uploads($mime_types) {
     return $mime_types;
 }
 add_filter('upload_mimes', 'allow_svg_uploads');
+
+/**
+ * Displays a fixed CTA button in the footer.
+ */
+function ai_research_add_footer_cta() {
+    // If you’re on the assistant page, don’t show the CTA
+    if (get_query_var('assistant_page') == 1) {
+        return;
+    }
+
+    // If your plugin has an option to disable the CTA, check it here
+    if (!get_option('ai_research_cta_enabled')) {
+        return;
+    }
+    ?>
+    <div class="assistant-cta-container">
+        <a href="<?php echo esc_url(home_url('/assistant')); ?>" class="assistant-cta-button">
+            <h3 class="assistant-cta-title">
+                Get <span class="lightning-bolt">⚡</span> Instant Answers
+            </h3>
+            <p class="assistant-cta-subtitle">
+                <?php echo esc_html(get_option('ai_research_cta_subtitle', 'Launch Our AI Assistant')); ?>
+            </p>
+        </a>
+    </div>
+    <?php
+}
+add_action('wp_footer', 'ai_research_add_footer_cta', 999);
+
+function ai_research_output_cta_styles() {
+    $start_color = get_option('ai_research_cta_gradient_start', '#123a52');
+    $end_color = get_option('ai_research_cta_gradient_end', '#155A74');
+    ?>
+    <style>
+        .assistant-cta-button {
+            background: linear-gradient(90deg, <?php echo esc_attr($start_color); ?> 0%, <?php echo esc_attr($end_color); ?> 100%);
+        }
+    </style>
+    <?php
+}
+add_action('wp_head', 'ai_research_output_cta_styles');
